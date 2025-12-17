@@ -1,0 +1,163 @@
+# Copyright (c) 2025-2026 fei_cong(https://github.com/feicong/feicong-course)
+name: CI Build
+
+on:
+  push:
+    branches: [main, master, develop]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: false
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
+      enable_script:
+        description: 'Enable scripting support'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
+  WITNESS_SCRIPT: ${{ github.event.inputs.enable_script || 'ON' }}
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Install Ninja
+        run: choco install ninja -y
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja -B build-release `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DWITNESS_SCRIPT=${{ env.WITNESS_SCRIPT }} `
+            -DWITNESS_ARCH=${{ matrix.arch }}
+
+      - name: Build
+        run: cmake --build build-release --parallel
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p artifacts
+          cp build-release/*.exe artifacts/ 2>$null || true
+          cp build-release/*.dll artifacts/ 2>$null || true
+          cp build-release/lib/*.exe artifacts/ 2>$null || true
+          cp build-release/lib/*.dll artifacts/ 2>$null || true
+        shell: pwsh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: w1tn3ss-windows-${{ matrix.arch }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          brew install ninja cmake
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja -B build-release \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DWITNESS_SCRIPT=${{ env.WITNESS_SCRIPT }} \
+            -DWITNESS_ARCH=arm64 \
+            -DCMAKE_OSX_ARCHITECTURES=arm64
+
+      - name: Build
+        run: cmake --build build-release --parallel
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p artifacts
+          find build-release -maxdepth 1 -type f \( -perm -u=x -o -name "*.dylib" \) -exec cp {} artifacts/ \; 2>/dev/null || true
+          find build-release/lib -type f \( -perm -u=x -o -name "*.dylib" \) -exec cp {} artifacts/ \; 2>/dev/null || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: w1tn3ss-macos-arm64
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake build-essential
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja -B build-release \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DWITNESS_SCRIPT=${{ env.WITNESS_SCRIPT }} \
+            -DWITNESS_ARCH=${{ matrix.arch }}
+
+      - name: Build
+        run: cmake --build build-release --parallel
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p artifacts
+          find build-release -maxdepth 1 -type f -executable -exec cp {} artifacts/ \; 2>/dev/null || true
+          find build-release -maxdepth 1 -name "*.so" -exec cp {} artifacts/ \; 2>/dev/null || true
+          find build-release/lib -type f -executable -exec cp {} artifacts/ \; 2>/dev/null || true
+          find build-release/lib -name "*.so" -exec cp {} artifacts/ \; 2>/dev/null || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: w1tn3ss-ubuntu-${{ matrix.arch }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
