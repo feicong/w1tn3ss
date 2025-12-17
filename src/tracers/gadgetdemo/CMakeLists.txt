@@ -1,4 +1,8 @@
 # gadgetdemo tracer - demonstrates gadget execution from QBDI callbacks
+# NOTE: QBDIPreload is not supported on Android, so skip this tracer
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    return()
+endif()
 
 # build the preload library
 set(GADGETDEMO_SOURCES preload.cpp)

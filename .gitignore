@@ -406,4 +406,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/c,c++,cmake,meson,linux,windows,macos,python,lua
+build-android-*/

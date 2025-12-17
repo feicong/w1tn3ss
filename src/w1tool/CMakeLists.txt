@@ -32,6 +32,11 @@ target_link_libraries(w1tool PRIVATE
     redlog::redlog
 )
 
+# Android-specific libraries
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    target_link_libraries(w1tool PRIVATE log)
+endif()
+
 apply_common_compile_options(w1tool)
 apply_windows_definitions(w1tool)
 configure_target_with_lief(w1tool)

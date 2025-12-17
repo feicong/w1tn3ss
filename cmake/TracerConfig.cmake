@@ -5,13 +5,14 @@ include(${WITNESS_SOURCE_DIR}/cmake/CommonConfig.cmake)
 
 # create tracer library targets (shared and static)
 function(create_tracer_targets tracer_name source_files)
-    if(WITNESS_BUILD_SHARED)
+    # QBDIPreload is not supported on Android, so skip _qbdipreload targets
+    if(WITNESS_BUILD_SHARED AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
         add_library(${tracer_name}_qbdipreload SHARED ${source_files})
         configure_tracer_target(${tracer_name}_qbdipreload ${tracer_name})
     endif()
 
     if(WITNESS_BUILD_STATIC)
-        add_library(${tracer_name}_static STATIC ${source_files})        
+        add_library(${tracer_name}_static STATIC ${source_files})
         configure_tracer_target(${tracer_name}_static ${tracer_name})
     endif()
 endfunction()

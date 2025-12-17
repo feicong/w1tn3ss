@@ -1,9 +1,12 @@
+# Copyright (c) 2025-2026 fei_cong(https://github.com/feicong/feicong-course)
 # platform and architecture detection
 include_guard()
 
 # detect platform for qbdi
 function(detect_qbdi_platform)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        set(QBDI_PLATFORM "android" CACHE STRING "QBDI Platform" FORCE)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         set(QBDI_PLATFORM "linux" CACHE STRING "QBDI Platform" FORCE)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         set(QBDI_PLATFORM "osx" CACHE STRING "QBDI Platform" FORCE)
@@ -12,7 +15,7 @@ function(detect_qbdi_platform)
     else()
         message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
     endif()
-    
+
     message(STATUS "QBDI Platform: ${QBDI_PLATFORM}")
 endfunction()
 
@@ -44,8 +47,10 @@ function(detect_architecture)
             set(QBDI_ARCH "X86" CACHE STRING "QBDI Architecture")
         elseif(WITNESS_ARCH STREQUAL "arm64")
             set(QBDI_ARCH "AARCH64" CACHE STRING "QBDI Architecture")
+        elseif(WITNESS_ARCH STREQUAL "arm")
+            set(QBDI_ARCH "ARM" CACHE STRING "QBDI Architecture")
         else()
-            message(FATAL_ERROR "Invalid WITNESS_ARCH: ${WITNESS_ARCH}. Must be: x64, x86, arm64, Auto")
+            message(FATAL_ERROR "Invalid WITNESS_ARCH: ${WITNESS_ARCH}. Must be: x64, x86, arm64, arm, Auto")
         endif()
         message(STATUS "User-specified architecture: ${WITNESS_ARCH}")
     endif()

@@ -426,8 +426,8 @@ bool memory_scanner::flush_instruction_cache(uint64_t address, size_t size) cons
   return true;
 #elif __linux__
   // linux: use gcc builtin which handles architecture-specific requirements
-  void* start = reinterpret_cast<void*>(address);
-  void* end = reinterpret_cast<void*>(address + size);
+  char* start = reinterpret_cast<char*>(address);
+  char* end = reinterpret_cast<char*>(address + size);
   __builtin___clear_cache(start, end);
   return true;
 #elif _WIN32
@@ -440,8 +440,8 @@ bool memory_scanner::flush_instruction_cache(uint64_t address, size_t size) cons
 #else
 // fallback: use gcc builtin if available
 #ifdef __GNUC__
-  void* start = reinterpret_cast<void*>(address);
-  void* end = reinterpret_cast<void*>(address + size);
+  char* start = reinterpret_cast<char*>(address);
+  char* end = reinterpret_cast<char*>(address + size);
   __builtin___clear_cache(start, end);
   return true;
 #else

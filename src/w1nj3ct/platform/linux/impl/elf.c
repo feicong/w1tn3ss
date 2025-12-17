@@ -27,7 +27,9 @@
 #include <inttypes.h>
 #include <regex.h>
 #include <elf.h>
+#ifndef __ANDROID__
 #include <glob.h>
+#endif
 #include <sys/sysmacros.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -378,6 +380,7 @@ static int open_libc(FILE** fp_out, const char* path, pid_t pid, dev_t dev, ino_
     goto found;
   }
 
+#ifndef __ANDROID__
   // workaround for Snap
   //
   // libc is in a base snap (https://snapcraft.io/docs/base-snaps),
@@ -396,6 +399,7 @@ static int open_libc(FILE** fp_out, const char* path, pid_t pid, dev_t dev, ino_
     }
     globfree(&globbuf);
   }
+#endif
   injector__set_errmsg("failed to open %s. (dev:0x%" PRIx64 ", ino:%lu)", path, dev, ino);
   return INJERR_NO_LIBRARY;
 found:

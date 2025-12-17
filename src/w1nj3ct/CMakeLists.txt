@@ -13,7 +13,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         platform/darwin/impl/remote_call.c platform/darwin/impl/util.c platform/darwin/impl/exc_handler.c
         platform/darwin/impl/mach_excServer.c
     )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND PLATFORM_SOURCES
         platform/linux/linux_injector.cpp
         platform/linux/impl/injector.c platform/linux/impl/elf.c platform/linux/impl/ptrace.c
@@ -41,8 +41,10 @@ target_link_libraries(w1nj3ct PUBLIC common redlog::redlog)
 # platform-specific libraries
 if(WIN32)
     target_link_libraries(w1nj3ct PRIVATE psapi kernel32 user32 advapi32 ntdll)
-elseif(UNIX AND NOT APPLE)
+elseif(UNIX AND NOT APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
     target_link_libraries(w1nj3ct PRIVATE dl pthread)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    target_link_libraries(w1nj3ct PRIVATE dl log)
 endif()
 
 apply_common_compile_options(w1nj3ct)

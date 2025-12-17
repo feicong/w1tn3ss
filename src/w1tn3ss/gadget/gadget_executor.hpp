@@ -102,9 +102,9 @@ RetType gadget_executor::gadget_call(QBDI::rword addr, const std::vector<QBDI::r
     );
 
     // add instrumentation for the gadget range
-    static constexpr QBDI::rword PAGE_MASK = 0xFFF;
+    static constexpr QBDI::rword GADGET_PAGE_MASK = 0xFFF;
     static constexpr QBDI::rword DEFAULT_RANGE_SIZE = 0x10000; // 64kb
-    QBDI::rword range_start = addr & ~PAGE_MASK;
+    QBDI::rword range_start = addr & ~GADGET_PAGE_MASK;
 
     log.dbg(
         "adding instrumentation range", redlog::field("range_start", "0x%llx", range_start),

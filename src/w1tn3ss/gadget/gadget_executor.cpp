@@ -86,9 +86,9 @@ gadget_result gadget_executor::gadget_run(
     );
 
     // add instrumentation for the gadget range
-    static constexpr QBDI::rword PAGE_MASK = 0xFFF;
+    static constexpr QBDI::rword GADGET_PAGE_MASK = 0xFFF;
     static constexpr QBDI::rword DEFAULT_RANGE_SIZE = 0x10000; // 64kb
-    QBDI::rword range_start = start_addr & ~PAGE_MASK;
+    QBDI::rword range_start = start_addr & ~GADGET_PAGE_MASK;
     QBDI::rword range_size = DEFAULT_RANGE_SIZE;
     sub_vm->addInstrumentedRange(range_start, range_start + range_size);
 

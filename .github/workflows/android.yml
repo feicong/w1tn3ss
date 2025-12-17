@@ -1,0 +1,112 @@
+# Copyright (c) 2025-2026 fei_cong(https://github.com/feicong/feicong-course)
+name: Android CI Build
+
+on:
+  push:
+    branches: [main, master, develop]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: false
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
+
+env:
+  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
+  NDK_VERSION: 'r27c'
+  ANDROID_PLATFORM: 24
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            abi: arm64-v8a
+            qbdi_arch: AARCH64
+          - arch: arm
+            abi: armeabi-v7a
+            qbdi_arch: ARM
+          - arch: x64
+            abi: x86_64
+            qbdi_arch: X86_64
+          - arch: x86
+            abi: x86
+            qbdi_arch: X86
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Cache ccache
+        uses: actions/cache@v5
+        id: cache-ccache
+        with:
+          path: ~/.ccache
+          key: ccache-android-${{ matrix.arch }}-${{ env.NDK_VERSION }}-${{ github.run_number }}
+          restore-keys: |
+            ccache-android-${{ matrix.arch }}-${{ env.NDK_VERSION }}-
+
+      - name: Cache Android NDK
+        uses: actions/cache@v5
+        id: cache-ndk
+        with:
+          path: android-ndk-${{ env.NDK_VERSION }}
+          key: ndk-${{ env.NDK_VERSION }}-linux
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache cmake g++ ninja-build pkg-config python3 unzip wget zlib1g-dev
+
+      - name: Download Android NDK
+        if: steps.cache-ndk.outputs.cache-hit != 'true'
+        run: |
+          wget --no-verbose https://dl.google.com/android/repository/android-ndk-${{ env.NDK_VERSION }}-linux.zip
+          unzip -q android-ndk-${{ env.NDK_VERSION }}-linux.zip
+          rm android-ndk-${{ env.NDK_VERSION }}-linux.zip
+
+      - name: Configure CMake
+        run: |
+          mkdir -p build-android-${{ matrix.abi }}
+          cmake -G Ninja -B build-android-${{ matrix.abi }} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/android-ndk-${{ env.NDK_VERSION }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} \
+            -DANDROID_PLATFORM=${{ env.ANDROID_PLATFORM }} \
+            -DANDROID_STL=c++_shared \
+            -DWITNESS_ARCH=${{ matrix.arch }} \
+            -DWITNESS_SCRIPT=OFF \
+            -DBUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build-android-${{ matrix.abi }} --parallel
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p artifacts
+          find build-android-${{ matrix.abi }}/lib -name "*.a" -exec cp {} artifacts/ \; 2>/dev/null || true
+          find build-android-${{ matrix.abi }}/lib -name "*.so" -exec cp {} artifacts/ \; 2>/dev/null || true
+          find build-android-${{ matrix.abi }} -maxdepth 1 -name "*.a" -exec cp {} artifacts/ \; 2>/dev/null || true
+          find build-android-${{ matrix.abi }} -maxdepth 1 -name "*.so" -exec cp {} artifacts/ \; 2>/dev/null || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: w1tn3ss-android-${{ matrix.abi }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30

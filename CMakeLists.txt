@@ -19,6 +19,7 @@ option(WITNESS_QBDI_EXTRAS "Build QBDI with examples, tests and additional tools
 # load configuration modules
 include(${WITNESS_SOURCE_DIR}/cmake/CommonConfig.cmake)
 include(${WITNESS_SOURCE_DIR}/cmake/PlatformConfig.cmake)
+include(${WITNESS_SOURCE_DIR}/cmake/AndroidConfig.cmake)
 include(${WITNESS_SOURCE_DIR}/cmake/LuaConfig.cmake)
 include(${WITNESS_SOURCE_DIR}/cmake/JavaScriptConfig.cmake)
 include(${WITNESS_SOURCE_DIR}/cmake/LIEFConfig.cmake)
@@ -28,6 +29,9 @@ include(${WITNESS_SOURCE_DIR}/cmake/WindowsSymbolConfig.cmake)
 detect_qbdi_platform()
 detect_architecture()
 configure_qbdi_options()
+
+# Android-specific configuration
+configure_android_build()
 
 # setup scripting environments once globally
 setup_lua_environment()

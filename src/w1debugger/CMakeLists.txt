@@ -19,7 +19,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         platform/darwin/thread_context.cpp
         platform/darwin/memory_ops.cpp
     )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND PLATFORM_SOURCES
         platform/linux/linux_debugger.cpp
     )
@@ -49,6 +49,8 @@ if(APPLE)
     target_link_libraries(w1debugger PRIVATE ${CORE_FOUNDATION} ${SECURITY})
 elseif(WIN32)
     target_link_libraries(w1debugger PRIVATE psapi kernel32 advapi32)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    target_link_libraries(w1debugger PRIVATE log)
 elseif(UNIX)
     target_link_libraries(w1debugger PRIVATE pthread)
 endif()
