@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -71,7 +71,7 @@ jobs:
         shell: pwsh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: w1tn3ss-windows-${{ matrix.arch }}
           path: artifacts/
@@ -83,7 +83,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -110,7 +110,7 @@ jobs:
           find build-release/lib -type f \( -perm -u=x -o -name "*.dylib" \) -exec cp {} artifacts/ \; 2>/dev/null || true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: w1tn3ss-macos-arm64
           path: artifacts/
@@ -126,7 +126,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -155,7 +155,7 @@ jobs:
           find build-release/lib -name "*.so" -exec cp {} artifacts/ \; 2>/dev/null || true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: w1tn3ss-ubuntu-${{ matrix.arch }}
           path: artifacts/
